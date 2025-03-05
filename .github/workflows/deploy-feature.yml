@@ -33,3 +33,4 @@ jobs:
           sam deploy --stack-name "LambdaStack-${BRANCH_NAME}" \
                      --parameter-overrides FeatureName=${BRANCH_NAME} \
                      --no-confirm-changeset --capabilities CAPABILITY_IAM
+                     --resolve-s3
