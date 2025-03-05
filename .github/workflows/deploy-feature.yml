@@ -32,4 +32,5 @@ jobs:
           echo "Deploying ephemeral stack for branch: ${BRANCH_NAME}"
           sam deploy --stack-name "LambdaStack-${BRANCH_NAME}" \
                      --parameter-overrides FeatureName=${BRANCH_NAME} \
-                     --no-confirm-changeset --capabilities CAPABILITY_IAM
+                     --no-confirm-changeset --capabilities CAPABILITY_IAM \
+                     --resolve-s3

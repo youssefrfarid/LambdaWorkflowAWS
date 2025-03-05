@@ -1,0 +1,22 @@
+{
+  "name": "lambdaworkflowaws",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sync": "bash ./bin/bash/sync_function.sh",
+    "invoke": "bash ./bin/bash/invoke_function.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youssefrfarid/LambdaWorkflowAWS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/youssefrfarid/LambdaWorkflowAWS/issues"
+  },
+  "homepage": "https://github.com/youssefrfarid/LambdaWorkflowAWS#readme"
+}
