@@ -4,7 +4,7 @@ export const handler = async (event, context) => {
   return {
     statusCode: 200,
     body: JSON.stringify({
-      message: "Hello from myNewFunction! editing it now again",
+      message: "Hello from myNewFunction! editing it now again hi testt",
     }),
   };
 };
