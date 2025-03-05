@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Auto-generated SAM template for multiple Lambda functions
+Parameters:
+  FeatureName:
+    Type: String
+    Default: dev
+    Description: Feature branch name or environment identifier
+Resources:
+  myNewFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'myNewFunction-${FeatureName}'
+      CodeUri: functions/myNewFunction
+      Handler: index.handler
+      Runtime: nodejs22.x
+      Timeout: 10
+      Policies:
+      - AWSLambdaBasicExecutionRole

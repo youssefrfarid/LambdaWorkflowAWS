@@ -1,0 +1,35 @@
+name: Deploy Feature Stack
+
+on:
+  push:
+    branches:
+      - "feature/*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Install SAM CLI
+        run: pip install aws-sam-cli
+
+      - name: Build SAM Application
+        run: sam build
+
+      - name: Deploy SAM Application
+        run: |
+          # Extract branch name and convert slashes to dashes for the stack name
+          BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | tr '/' '-')
+          echo "Deploying ephemeral stack for branch: ${BRANCH_NAME}"
+          sam deploy --stack-name "LambdaStack-${BRANCH_NAME}" \
+                     --parameter-overrides FeatureName=${BRANCH_NAME} \
+                     --no-confirm-changeset --capabilities CAPABILITY_IAM
