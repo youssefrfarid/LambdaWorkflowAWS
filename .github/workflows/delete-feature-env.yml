@@ -23,13 +23,17 @@ jobs:
       - name: Determine and Delete Ephemeral Stack
         run: |
           echo "Pull Request #${{ github.event.pull_request.number }} was merged into main."
-
-          # $GITHUB_HEAD_REF is the branch name of the source (feature) branch in a pull request
-          echo "Source branch: $GITHUB_HEAD_REF"
-
-          # Convert any slashes (/) to dashes (-) so it matches the stack naming pattern
+      
+          # Convert any slashes to dashes
           BRANCH_NAME=$(echo "$GITHUB_HEAD_REF" | tr '/' '-')
           STACK_NAME="LambdaStack-${BRANCH_NAME}"
-
+      
+          echo "Waiting for stack update to complete (if in progress)..."
+          aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME" || true
+      
           echo "Deleting stack: $STACK_NAME"
           aws cloudformation delete-stack --stack-name "$STACK_NAME"
+      
+          echo "Waiting for stack deletion to complete..."
+          aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME" || true
+
