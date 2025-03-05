@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/youssefrfarid/LambdaWorkflowAWS/issues"
   },
-  "homepage": "https://github.com/youssefrfarid/LambdaWorkflowAWS#readme"
+  "homepage": "https://github.com/youssefrfarid/LambdaWorkflowAWS#readme",
+  "dependencies": {
+    "lambdaworkflowaws": "file:"
+  }
 }
