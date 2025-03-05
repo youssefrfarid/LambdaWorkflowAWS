@@ -4,7 +4,7 @@ export const handler = async (event, context) => {
   return {
     statusCode: 200,
     body: {
-      message: "Hello from mySecondFunction! in multiple",
+      message: "Hello from mySecondFunction! in multiple test again again",
     },
   };
 };
