@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "sync": "bash ./bin/bash/sync_function.sh"
+    "sync": "bash ./bin/bash/sync_function.sh",
+    "invoke": "bash ./bin/bash/invoke_function.sh"
   },
   "repository": {
     "type": "git",
