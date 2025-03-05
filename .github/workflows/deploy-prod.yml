@@ -30,5 +30,7 @@ jobs:
         run: |
           echo "Deploying production stack"
           sam deploy --stack-name "LambdaStack-prod" \
-                     --parameter-overrides FeatureName=prod \
-                     --no-confirm-changeset --capabilities CAPABILITY_IAM
+                  --parameter-overrides FeatureName=prod \
+                  --no-confirm-changeset \
+                  --capabilities CAPABILITY_IAM \
+                  --resolve-s3
