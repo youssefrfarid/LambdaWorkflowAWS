@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # 2. Configure AWS credentials using GitHub Secrets
+      # 2. Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -26,20 +26,25 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # 4. (Optional) Build and Zip Your Lambda Functions
-      #    If you have a script that zips each function into terraform/build/*.zip
+      # 4. Build and Zip Your Lambda Functions
       - name: Build Lambda code
         run: |
           chmod +x ./bin/bash/build_functions.sh
           ./bin/bash/build_functions.sh
 
-      # 5. Initialize Terraform
+      # 5. Auto-generate .tf resources
+      - name: Generate Terraform config
+        run: |
+          cd terraform
+          python auto_update_terraform.py
+
+      # 6. Initialize Terraform
       - name: Terraform Init
         run: |
           cd terraform
           terraform init
 
-      # 6. Plan and Apply Terraform for Production
+      # 7. Plan and Apply Terraform for Production
       - name: Terraform Plan & Apply
         run: |
           cd terraform

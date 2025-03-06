@@ -1,6 +1,0 @@
-{
-    "operation": "echo",
-    "payload": {
-        "message": "Hello, World!"
-    }
-}

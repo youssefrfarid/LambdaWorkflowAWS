@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import os
 
-FUNCTIONS_DIR = "./functions"
-OUTPUT_FILE = "./terraform/auto_generated_functions.tf"
+FUNCTIONS_DIR = "../functions"
+OUTPUT_FILE = "../terraform/auto_generated_functions.tf"
 
 
 def main():
