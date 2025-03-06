@@ -1,4 +1,4 @@
-name: Deploy Production Stack
+name: Deploy Production Stack with Terraform
 
 on:
   push:
@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Check out your repository
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # 2. Configure AWS credentials using GitHub Secrets
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -20,17 +22,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
-      - name: Install SAM CLI
-        run: pip install aws-sam-cli
+      # 3. Install Terraform
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
 
-      - name: Build SAM Application
-        run: sam build
-
-      - name: Deploy SAM Application
+      # 4. (Optional) Build and Zip Your Lambda Functions
+      #    If you have a script that zips each function into terraform/build/*.zip
+      - name: Build Lambda code
         run: |
-          echo "Deploying production stack"
-          sam deploy --stack-name "LambdaStack-prod" \
-                  --parameter-overrides FeatureName=prod \
-                  --no-confirm-changeset \
-                  --capabilities CAPABILITY_IAM \
-                  --resolve-s3
+          chmod +x ./bin/bash/build_functions.sh
+          ./bin/bash/build_functions.sh
+
+      # 5. Initialize Terraform
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
+
+      # 6. Plan and Apply Terraform for Production
+      - name: Terraform Plan & Apply
+        run: |
+          cd terraform
+          terraform plan -var="feature_name=prod" -out=tfplan
+          terraform apply -auto-approve tfplan
