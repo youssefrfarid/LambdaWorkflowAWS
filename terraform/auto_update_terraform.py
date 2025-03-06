@@ -24,7 +24,7 @@ resource "aws_lambda_function" "{resource_name}" {{
   function_name = "${{var.feature_name}}-{resource_name}"
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "index.handler"
-  runtime       = "nodejs22.x"
+  runtime       = "nodejs18.x"
   filename      = "${{path.module}}/build/{resource_name}.zip"
 }}
 """
