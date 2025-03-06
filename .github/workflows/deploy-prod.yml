@@ -32,7 +32,7 @@ jobs:
           chmod +x ./bin/bash/build_functions.sh
           ./bin/bash/build_functions.sh
 
-      # 5. Auto-generate .tf resources
+      # 5. Auto-generate .tf resources (Python script)
       - name: Generate Terraform config
         run: |
           cd terraform
@@ -44,7 +44,25 @@ jobs:
           cd terraform
           terraform init
 
-      # 7. Plan and Apply Terraform for Production
+      # 7. Check & Import IAM Role if it Already Exists
+      - name: Check & Import IAM Role
+        run: |
+          cd terraform
+          set +e
+          ROLE_NAME="lambda-exec-role-prod"
+          echo "Checking if role $ROLE_NAME exists..."
+          aws iam get-role --role-name "$ROLE_NAME"
+          EXISTS=$?
+
+          if [ $EXISTS -eq 0 ]; then
+            echo "Role $ROLE_NAME already exists. Importing into Terraform..."
+            terraform import aws_iam_role.lambda_exec_role "$ROLE_NAME" || true
+          else
+            echo "Role $ROLE_NAME does not exist. Terraform will create it."
+          fi
+          set -e
+
+      # 8. Plan and Apply Terraform for Production
       - name: Terraform Plan & Apply
         run: |
           cd terraform

@@ -28,3 +28,11 @@ data "aws_iam_policy_document" "lambda_trust" {
     }
   }
 }
+
+#############################
+# Attach a Basic Execution Policy
+#############################
+resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
