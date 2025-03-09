@@ -4,7 +4,7 @@ export const handler = async (event, context) => {
   return {
     statusCode: 200,
     body: {
-      message: "2nd run again and again",
+      message: "Hi Mr Ramy again",
     },
   };
 };
