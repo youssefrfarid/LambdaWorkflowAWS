@@ -4,8 +4,7 @@ export const handler = async (event, context) => {
   return {
     statusCode: 200,
     body: {
-      message:
-        "Hello from myNewFunction! will test dev again watch please ya rab ya rab asra3 please",
+      message: "2nd run",
     },
   };
 };
