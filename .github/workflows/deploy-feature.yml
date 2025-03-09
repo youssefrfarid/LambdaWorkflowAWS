@@ -1,4 +1,4 @@
-name: Deploy Feature Stack
+name: Deploy Feature Stack with Terraform
 
 on:
   push:
@@ -8,10 +8,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Check out your repository
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # 2. Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -19,18 +22,46 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
-      - name: Install SAM CLI
-        run: pip install aws-sam-cli
+      # 3. Install Terraform
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
 
-      - name: Build SAM Application
-        run: sam build
-
-      - name: Deploy SAM Application
+      # 4. Determine Branch Name
+      #    We'll extract the feature branch and convert slashes to dashes (e.g., feature-test)
+      - name: Determine Branch Name
+        id: get_branch
         run: |
-          # Extract branch name and convert slashes to dashes for the stack name
           BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | tr '/' '-')
-          echo "Deploying ephemeral stack for branch: ${BRANCH_NAME}"
-          sam deploy --stack-name "LambdaStack-${BRANCH_NAME}" \
-                     --parameter-overrides FeatureName=${BRANCH_NAME} \
-                     --no-confirm-changeset --capabilities CAPABILITY_IAM \
-                     --resolve-s3
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      # 5. Build & Zip Your Lambda Functions
+      - name: Build Lambda code
+        run: |
+          chmod +x ./bin/bash/build_functions.sh
+          ./bin/bash/build_functions.sh
+
+      # 6. Auto-generate .tf resources (Python script)
+      - name: Generate Terraform config
+        run: |
+          cd terraform
+          python auto_update_terraform.py
+
+      # 7. Initialize Terraform
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
+
+      # 8. Check & Import IAM + Lambda Resources (if they exist)
+      - name: Check & Import Resources
+        run: |
+          cd terraform
+          chmod +x ../bin/bash/check_import_resources.sh
+          ../bin/bash/check_import_resources.sh ${{ steps.get_branch.outputs.branch_name }}
+
+      # 9. Plan and Apply Terraform for the Feature Branch
+      - name: Terraform Plan & Apply
+        run: |
+          cd terraform
+          terraform plan -var="feature_name=${{ steps.get_branch.outputs.branch_name }}" -out=tfplan
+          terraform apply -auto-approve tfplan

@@ -8,11 +8,15 @@ on:
 
 jobs:
   cleanup:
-    # Only proceed if the PR was actually merged (not just closed).
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Check out your repository (so we have the Terraform code)
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # 2. Configure AWS Credentials (so Terraform can destroy resources)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -20,20 +24,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
-      - name: Determine and Delete Ephemeral Stack
+      # 3. Determine Branch Name
+      #    e.g. if GITHUB_HEAD_REF = "feature/test", we convert to "feature-test"
+      - name: Determine Branch Name
+        id: get_branch
         run: |
-          echo "Pull Request #${{ github.event.pull_request.number }} was merged into main."
-      
-          # Convert any slashes to dashes
           BRANCH_NAME=$(echo "$GITHUB_HEAD_REF" | tr '/' '-')
-          STACK_NAME="LambdaStack-${BRANCH_NAME}"
-      
-          echo "Waiting for stack update to complete (if in progress)..."
-          aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME" || true
-      
-          echo "Deleting stack: $STACK_NAME"
-          aws cloudformation delete-stack --stack-name "$STACK_NAME"
-      
-          echo "Waiting for stack deletion to complete..."
-          aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME" || true
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
+      # 4. Install Terraform
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # 5. Terraform Destroy
+      #    This removes all resources for the ephemeral environment (including Lambdas).
+      - name: Destroy Ephemeral Environment
+        run: |
+          cd terraform
+          terraform init
+          terraform destroy -auto-approve -var="feature_name=${{ steps.get_branch.outputs.branch_name }}"
