@@ -1,6 +1,6 @@
 {
     "statusCode": 200,
     "body": {
-        "message": "Hello from myNewFunction! will test deleted"
+        "message": "2nd run again and again"
     }
 }

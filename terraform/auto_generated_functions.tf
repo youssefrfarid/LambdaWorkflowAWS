@@ -6,6 +6,9 @@ resource "aws_lambda_function" "myNewFunction" {
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   filename      = "${path.module}/build/myNewFunction.zip"
+
+  # This ensures Terraform notices code changes in the .zip:
+  source_code_hash = filebase64sha256("${path.module}/build/myNewFunction.zip")
 }
 output "myNewFunction_name" {
   value = aws_lambda_function.myNewFunction.function_name
@@ -16,6 +19,9 @@ resource "aws_lambda_function" "mySecondFunction" {
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   filename      = "${path.module}/build/mySecondFunction.zip"
+
+  # This ensures Terraform notices code changes in the .zip:
+  source_code_hash = filebase64sha256("${path.module}/build/mySecondFunction.zip")
 }
 output "mySecondFunction_name" {
   value = aws_lambda_function.mySecondFunction.function_name

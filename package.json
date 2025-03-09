@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch-lambda": "node scripts/watch-lambda.js",
-    "invoke": "bash ./bin/bash/invoke_function.sh"
+    "invoke": "powershell -File .\\bin\\powershell\\invoke_function.ps1"
   },
   "repository": {
     "type": "git",
