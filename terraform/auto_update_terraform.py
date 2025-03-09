@@ -19,6 +19,7 @@ def main():
     for func in function_dirs:
         resource_name = func
 
+        # Insert the 'source_code_hash' line referencing the same .zip
         resource_block = f"""
 resource "aws_lambda_function" "{resource_name}" {{
   function_name = "${{var.feature_name}}-{resource_name}"
@@ -26,11 +27,14 @@ resource "aws_lambda_function" "{resource_name}" {{
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   filename      = "${{path.module}}/build/{resource_name}.zip"
+
+  # This ensures Terraform notices code changes in the .zip:
+  source_code_hash = filebase64sha256("${{path.module}}/build/{resource_name}.zip")
 }}
 """
         tf_content.append(resource_block.strip("\n"))
 
-        # Create an output block for each function
+        # Output block remains the same
         output_block = f"""
 output "{resource_name}_name" {{
   value = aws_lambda_function.{resource_name}.function_name
