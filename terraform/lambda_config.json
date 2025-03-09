@@ -1,0 +1,35 @@
+{
+    "functionA": {
+        "layers": [
+            "arn:aws:lambda:region:account-id:layer:myLayer:1"
+        ],
+        "vpc_config": {
+            "subnet_ids": [
+                "subnet-12345678",
+                "subnet-87654321"
+            ],
+            "security_group_ids": [
+                "sg-12345678"
+            ]
+        },
+        "environment": {
+            "VAR1": "valueA",
+            "VAR2": "valueB"
+        }
+    },
+    "functionB": {
+        "layers": [],
+        "vpc_config": {
+            "subnet_ids": [
+                "subnet-22222222"
+            ],
+            "security_group_ids": [
+                "sg-22222222",
+                "sg-33333333"
+            ]
+        },
+        "environment": {
+            "DEBUG": "true"
+        }
+    }
+}
