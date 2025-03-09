@@ -1,35 +1,43 @@
 {
-    "functionA": {
-        "layers": [
-            "arn:aws:lambda:region:account-id:layer:myLayer:1"
-        ],
-        "vpc_config": {
-            "subnet_ids": [
-                "subnet-12345678",
-                "subnet-87654321"
-            ],
-            "security_group_ids": [
-                "sg-12345678"
-            ]
-        },
-        "environment": {
-            "VAR1": "valueA",
-            "VAR2": "valueB"
-        }
+  "functionA": {
+    "layers": [
+      "arn:aws:lambda:region:account-id:layer:myLayer:1"
+    ],
+    "vpc_config": {
+      "subnet_ids": [
+        "subnet-12345678",
+        "subnet-87654321"
+      ],
+      "security_group_ids": [
+        "sg-12345678"
+      ]
     },
-    "functionB": {
-        "layers": [],
-        "vpc_config": {
-            "subnet_ids": [
-                "subnet-22222222"
-            ],
-            "security_group_ids": [
-                "sg-22222222",
-                "sg-33333333"
-            ]
-        },
-        "environment": {
-            "DEBUG": "true"
-        }
+    "environment": {
+      "VAR1": "valueA",
+      "VAR2": "valueB"
     }
+  },
+  "functionB": {
+    "layers": [],
+    "vpc_config": {
+      "subnet_ids": [
+        "subnet-22222222"
+      ],
+      "security_group_ids": [
+        "sg-22222222",
+        "sg-33333333"
+      ]
+    },
+    "environment": {
+      "DEBUG": "true"
+    }
+  },
+  "importFunction": {
+    "runtime": "nodejs18.x",
+    "handler": "index.handler",
+    "role": "arn:aws:iam::445567078336:role/service-role/importFunction-role-atnv3txe",
+    "environment": {
+      "testKey": "value"
+    }
+  }
 }

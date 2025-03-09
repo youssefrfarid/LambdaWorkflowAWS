@@ -6,11 +6,60 @@ import zipfile
 import boto3
 import requests
 
-# Configuration
+# Directories and file paths (adjust these paths as needed)
 FUNCTIONS_DIR = "../functions"
 TERRAFORM_DIR = "../terraform"
-GENERATED_TF_FILE = os.path.join(
-    TERRAFORM_DIR, "auto_generated_imported_functions.tf")
+BUILD_DIR = os.path.join(TERRAFORM_DIR, "build")
+# JSON file to hold function-specific configurations
+CONFIG_FILE = "./lambda_config.json"
+
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_config(config):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config, f, indent=2)
+
+
+def update_function_config(function_name, config_data):
+    """
+    Update the configuration JSON for the imported function.
+    `config_data` is a dictionary extracted from the AWS Lambda get_function response.
+    """
+    new_config = {}
+    # Map fields from AWS configuration to our JSON configuration
+    new_config["runtime"] = config_data.get("Runtime", "nodejs18.x")
+    new_config["handler"] = config_data.get("Handler", "index.handler")
+    new_config["role"] = config_data.get("Role", "REPLACE_WITH_ROLE_ARN")
+
+    # Include VPC configuration if available
+    if "VpcConfig" in config_data:
+        new_config["vpc_config"] = {
+            "subnet_ids": config_data["VpcConfig"].get("SubnetIds", []),
+            "security_group_ids": config_data["VpcConfig"].get("SecurityGroupIds", []),
+        }
+
+    # Include environment variables if available
+    env = config_data.get("Environment", {}).get("Variables")
+    if env:
+        new_config["environment"] = env
+
+    # Optionally, include layers if available (not all functions have them)
+    if "Layers" in config_data:
+        new_config["layers"] = [
+            layer.get("Arn") for layer in config_data["Layers"] if layer.get("Arn")]
+
+    # Load existing config, update the function entry, and save it back.
+    config = load_config()
+    config[function_name] = new_config
+    save_config(config)
+    print(
+        f"Updated configuration for function '{function_name}' in {CONFIG_FILE}.")
 
 
 def get_lambda_function(function_name):
@@ -41,54 +90,6 @@ def extract_zip(zip_path, extract_to):
     print("Extraction complete.")
 
 
-def generate_terraform_file(function_name, config):
-    # Basic resource block with some configuration fields from AWS.
-    # You can customize this as needed.
-    tf_resource = f"""
-resource "aws_lambda_function" "{function_name}" {{
-  function_name = "{function_name}"
-  role          = "{config.get('Role', 'REPLACE_WITH_ROLE_ARN')}"
-  handler       = "{config.get('Handler', 'index.handler')}"
-  runtime       = "{config.get('Runtime', 'nodejs18.x')}"
-  filename      = "${{path.module}}/build/{function_name}.zip"
-
-  // Ensure Terraform notices code changes in the .zip:
-  source_code_hash = filebase64sha256("${{path.module}}/build/{function_name}.zip")
-"""
-
-    # Optionally add VPC configuration if available
-    vpc_config = config.get("VpcConfig")
-    if vpc_config:
-        subnets = json.dumps(vpc_config.get("SubnetIds", []))
-        sgs = json.dumps(vpc_config.get("SecurityGroupIds", []))
-        tf_resource += f"""
-  vpc_config {{
-    subnet_ids         = {subnets}
-    security_group_ids = {sgs}
-  }}
-"""
-
-    # Optionally add environment variables if available
-    env = config.get("Environment", {}).get("Variables")
-    if env:
-        env_json = json.dumps(env)
-        tf_resource += f"""
-  environment {{
-    variables = {env_json}
-  }}
-"""
-    tf_resource += "\n}\n"
-
-    # Optionally, add an output block.
-    tf_output = f"""
-output "{function_name}_name" {{
-  value = aws_lambda_function.{function_name}.function_name
-}}
-"""
-
-    return tf_resource + tf_output
-
-
 def main():
     if len(sys.argv) < 2:
         print("Usage: import_lambda.py <FunctionName>")
@@ -97,7 +98,7 @@ def main():
     function_name = sys.argv[1]
     print(f"Importing Lambda function: {function_name}")
 
-    # Get the Lambda function details from AWS.
+    # Retrieve the function's configuration and code details from AWS.
     function_data = get_lambda_function(function_name)
     configuration = function_data.get("Configuration", {})
     code = function_data.get("Code", {})
@@ -106,34 +107,27 @@ def main():
         print("No code URL found in the function data.")
         sys.exit(1)
 
-    # Create a folder in FUNCTIONS_DIR for the function.
+    # Create a folder for the function under FUNCTIONS_DIR.
     function_folder = os.path.join(FUNCTIONS_DIR, function_name)
     os.makedirs(function_folder, exist_ok=True)
 
-    # Download the code package.
+    # Download the code package as a ZIP file into the function folder.
     zip_file_path = os.path.join(function_folder, f"{function_name}.zip")
     download_code(code_url, zip_file_path)
 
     # Extract the zip file into the function folder.
     extract_zip(zip_file_path, function_folder)
 
-    # (Optional) Move the zip file to your Terraform build folder.
-    build_dir = os.path.join(TERRAFORM_DIR, "build")
-    os.makedirs(build_dir, exist_ok=True)
-    terraform_zip_path = os.path.join(build_dir, f"{function_name}.zip")
+    # Ensure the Terraform build directory exists, then move the ZIP file there.
+    os.makedirs(BUILD_DIR, exist_ok=True)
+    terraform_zip_path = os.path.join(BUILD_DIR, f"{function_name}.zip")
     os.rename(zip_file_path, terraform_zip_path)
     print(f"Moved zip file to Terraform build directory: {terraform_zip_path}")
 
-    # Generate a Terraform configuration for this function.
-    tf_block = generate_terraform_file(function_name, configuration)
+    # Update the configuration JSON file with the function's settings.
+    update_function_config(function_name, configuration)
 
-    # Append to (or create) the auto-generated Terraform file.
-    with open(GENERATED_TF_FILE, "a") as f:
-        f.write(tf_block)
-        f.write("\n")
-
-    print(
-        f"Terraform configuration for '{function_name}' generated in '{GENERATED_TF_FILE}'.")
+    # Remind the user to import the function into Terraform.
     print("To import this function into Terraform state, run:")
     print(
         f"  terraform import aws_lambda_function.{function_name} {function_name}")
