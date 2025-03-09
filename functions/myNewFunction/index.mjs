@@ -4,7 +4,7 @@ export const handler = async (event, context) => {
   return {
     statusCode: 200,
     body: {
-      message: "Hello from myNewFunction! will test deleted",
+      message: "Hello from myNewFunction! will test dev",
     },
   };
 };
