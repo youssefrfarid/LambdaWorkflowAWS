@@ -61,7 +61,13 @@ async function importIamRoleIfExists(featureName) {
 
 // Check if the Lambda function exists and import it into Terraform state if so
 async function importLambdaIfExists(featureName, functionName) {
-    const awsName = `${featureName}-${functionName}`;
+    var awsName;
+    if (featureName == "prod") {
+        awsName = `${functionName}`;
+    } else {
+        awsName = `${featureName}-${functionName}`;
+    }
+
     console.log(`Checking for Lambda function '${awsName}'...`);
     return new Promise((resolve) => {
         const child = spawn('aws', ['lambda', 'get-function', '--function-name', awsName]);

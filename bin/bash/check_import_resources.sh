@@ -43,7 +43,12 @@ FUNCTIONS_DIR="../functions"
 for folder in "$FUNCTIONS_DIR"/*/; do
   if [ -d "$folder" ]; then
     folderName=$(basename "$folder")   # e.g. "myNewFunction"
-    LAMBDA_NAME="${FEATURE_NAME}-${folderName}"  # e.g. "prod-myNewFunction"
+    
+    if [ "$FEATURE_NAME" = "prod" ]; then
+      LAMBDA_NAME="${folderName}"
+    else
+      LAMBDA_NAME="${FEATURE_NAME}-${folderName}"
+    fi
 
     echo "Checking if Lambda function '$LAMBDA_NAME' exists..."
     aws lambda get-function --function-name "$LAMBDA_NAME"

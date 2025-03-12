@@ -40,11 +40,11 @@ jobs:
           chmod +x ./bin/bash/build_functions.sh
           ./bin/bash/build_functions.sh
 
-      # 6. Auto-generate .tf resources (Python script)
+      # 6. Auto-generate .tf resources (Node.js script)
       - name: Generate Terraform config
         run: |
-          cd terraform
-          python auto_update_terraform.py
+          cd scripts
+          node auto_update_terraform.js
 
       # 7. Initialize Terraform
       - name: Terraform Init

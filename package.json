@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/youssefrfarid/LambdaWorkflowAWS#readme",
   "dependencies": {
+    "adm-zip": "^0.5.16",
+    "aws-sdk": "^2.1692.0",
     "lambdaworkflowaws": "file:"
   },
   "devDependencies": {

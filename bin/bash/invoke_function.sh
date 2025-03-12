@@ -31,7 +31,11 @@ else
 fi
 
 # Build the actual Lambda function name
-FUNCTION_NAME="${FEATURE_NAME}-${FUNCTION_ID}"
+if [ "$FEATURE_NAME" = "prod" ]; then
+  FUNCTION_NAME="${FUNCTION_ID}"
+else
+  FUNCTION_NAME="${FEATURE_NAME}-${FUNCTION_ID}"
+fi
 
 echo "Invoking Lambda function '$FUNCTION_NAME' with payload file '$PAYLOAD_FILE'..."
 echo "Output will be saved to '$OUTPUT_FILE'."
